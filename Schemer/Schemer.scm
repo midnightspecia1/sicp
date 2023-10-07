@@ -434,3 +434,133 @@
     (lambda (a b)
         (cond ((sero? b) a)
               (else (edd1 (a+ a (zub1 b)))))))
+
+;;7 FRIENDS AND RELATIONS
+
+(define set?
+    (lambda (lat)
+        (cond ((null? lat) #t)
+              ((member? (car lat) (cdr lat)) #f)
+              (else (set? (cdr lat))))))
+
+#| (define makeset
+    (lambda (lat)
+        (cond ((null? lat) lat)
+              ((member? (car lat) (cdr lat)) (makeset (cdr lat)))
+              (else (cons (car lat) (makeset (cdr lat)))))))
+ |#
+
+ (define makeset
+    (lambda (lat)
+        (cond ((null? lat) '())
+              (else (cons (car lat) 
+                          (makeset (multirember (car lat) (cdr lat))))))))
+
+(define subset?
+    (lambda (set1 set2)
+        (cond ((null? set1) #t)
+              ((member? (car set1) set2) (subset? (cdr set1) set2))
+              (else #f))))
+
+#| (define eqset? 
+    (lambda (set1 set2)
+        (cond ((subset? set1 set2) (subset? set2 set1))
+              (else #f)))) |#
+
+(define eqset?
+    (lambda (set1 set2)
+        (and (subset? set1 set2) (subset? set2 set1))))
+
+(define intersect? 
+    (lambda (set1 set2)
+        (cond ((null? set1) #f)
+              ((member? (car set1) set2) #t)
+              (else (intersect? (cdr set1) set2)))))
+
+(define intersect
+    (lambda (set1 set2)
+        (cond ((null? set1) '())
+              ((member? (car set1) set2) 
+                    (cons (car set1) (intersect (cdr set1) set2)))
+              (else (intersect (cdr set1) set2)))))
+
+(define union
+    (lambda (set1 set2)
+        (cond ((null? set1) set2)
+              ((member? (car set1) set2)
+                    (union (cdr set1) set2))
+              (else (cons (car set1) (union (cdr set1) set2))))))
+
+(define intersectall
+    (lambda (l-set)
+        (cond ((null? (cdr l-set)) (car l-set))
+              (else (intersect (car l-set)
+                               (intersectall (cdr l-set)))))))
+
+(define a-pair?
+    (lambda (x)
+        (cond ((atom? x) #f)
+              ((null? x) #f)
+              ((null? (cdr x)) #f)
+              ((null? (cdr (cdr x))) #t)
+              (else #f))))
+
+(define first
+    (lambda (pair)
+        (car pair)))
+
+(define firsts
+    (lambda (pairs)
+        (cond ((null? pairs) '()) 
+              (else (cons (first (car pairs)) (firsts (cdr pairs)))))))
+
+(define second
+    (lambda (pair)
+        (car (cdr pair))))
+        
+(define seconds
+    (lambda (pairs)
+        (cond ((null? pairs) '()) 
+              (else (cons (second (car pairs)) (seconds (cdr pairs)))))))        
+
+(define build
+    (lambda (f s)
+        (cons f (cons s '()))))
+
+;; rel stands for relation
+;; finite function is represented by the list of pairs with all diferent first elements
+(define fun?
+    (lambda (rel)
+        (set? (firsts rel))))
+
+#| (define revrel
+    (lambda (rel)
+        (cond ((null? rel) '())
+              (else (cons (build (second (car rel)) 
+                                 (first (car rel))) 
+                          (revrel (cdr rel)))))))
+ |#
+(define revpair
+    (lambda (pair)
+        (build (second pair) (first pair))))
+
+(define revrel
+    (lambda (rel)
+        (cond ((null? rel) '())
+              (else (cons (revpair (car rel)) 
+                          (revrel (cdr rel)))))))
+
+(define fulfun?
+    (lambda (fun)
+        (set? (seconds fun))))
+
+(define one-to-one
+    (lambda (fun)
+        (set? (revrel fun))))
+
+;;CHAPTER 8 LAMBDA THE ULTIMATE
+(define rember-f
+    (lambda (test? a l)
+        (cond ((null? l) '())
+              ((test? (car l) a) (cdr l))
+              (else (cons (car l) (rember-f test? a (cdr l)))))))
