@@ -559,8 +559,233 @@
         (set? (revrel fun))))
 
 ;;CHAPTER 8 LAMBDA THE ULTIMATE
-(define rember-f
+#| (define rember-f
     (lambda (test? a l)
         (cond ((null? l) '())
               ((test? (car l) a) (cdr l))
               (else (cons (car l) (rember-f test? a (cdr l)))))))
+ |#
+
+ (define rember-f
+    (lambda (test?)
+        (lambda (a l)
+            (cond ((null? l) '())
+                ((test? (car l) a) (cdr l))
+                (else (cons (car l) ((rember-f test?) a (cdr l))))))))
+
+(define rember-eq? (rember-f eq?))
+
+;; currying
+(define eq?-c
+    (lambda (a)
+        (lambda (x)
+            (eq? a x))))
+
+(define eq?-salad
+    (eq?-c 'salad))
+
+(define insertL-f
+    (lambda (test?)
+        (lambda (new old lat)
+              (cond ((null? lat) '())
+                    ((test? (car lat) old) (cons new lat))
+                    (else (cons (car lat)
+                                ((insertL-f test?) new old (cdr lat))))))))
+
+(define insertR-f
+    (lambda (test?)
+        (lambda (new old lat)
+              (cond ((null? lat) '())
+                    ((test? (car lat) old) (cons old (cons new (cdr lat))))
+                    (else (cons (car lat)
+                                ((insertR-f test?) new old (cdr lat))))))))
+
+(define SeqR
+    (lambda (new old lat)
+            (cons old (cons new lat)))) 
+
+(define SeqL
+    (lambda (new old lat)
+            (cons new (cons old lat))))
+
+(define SeqS
+    (lambda (new old lat)
+            (cons new lat)))
+
+(define SeqRem
+    (lambda (new old lat)
+            l))
+
+(define insertG
+    (lambda (test? seq)
+        (lambda (new old lat)
+            (cond ((null? lat) '())
+                  ((test? (car lat) old) (seq new old (cdr lat)))
+                  (else (cons (car lat)
+                                ((insertG test?) new old (cdr lat) seq)))))))
+
+(define insertL (insertG equal? seqL))
+
+(define insertL (insertG equal? 
+                         (lambda (new old lat) (cons new (cons old lat)))))
+
+(define substS (insertG equal? SeqS))
+
+(define remberS (insertG equal? SeqRem))
+
+;; THE NINTH COMMANDMENT
+;; abstract the common patterns with a new function
+
+#| (define atom-to-function
+    (lambda (a)
+        (cond ((eq? a (quote +)) o+))))
+              ((eq? a (quote x)) o*)
+              (else o^)
+
+(define valueN
+    (lambda (nexp)
+        (cond ((atom? nexp) nexp)
+              (else ((atom-to-function (operator nexp))
+                     (value (1st-sub-exp nexp))
+                     (value (2nd-sub-exp nexp)))))))
+
+(define multirember-f
+    (lambda (test?)
+        (lambda (a lat)
+            (cond ((null? lat) '())
+                  ((test? (car lat) a) ((multirember-f test?) a (cdr lat)))
+                  (else (cons (car lat)
+                              ((multirember-f test?) a (cdr lat))))))))
+
+(define multirember-eq? (multirember-f eq?))
+
+(define eq?-tuna (eq?-c (quote tuna)))
+
+(define multiremberT
+    (lambda (test?)
+        (lambda (a lat)
+            (cond ((null? lat) '())
+                ((test? (car lat) a) (multiremberT test? (cdr lat)))
+                (else (cons (car lat)
+                            (multiremberT test? (cdr lat))))))))
+
+;;;; collector
+;;;;
+
+(define multiremberCO
+    (lambda (a lat col) ;; 'tuna '(and tuna)
+        (cond ((null? lat) (col '() '()))
+              ((eq? (car lat) a) (multiremberCO a (cdr lat) 
+                                    (lambda (newlat seen)
+                                        (col newlat (cons (car lat) seen)))))
+              (else (multiremberCO a (cdr lat)
+                                        (lambda (newlat seen)
+                                            (col (cons (car lat) newlat) seen)))))))
+ |#
+
+(define a-friend
+    (lambda (x y) (null? y)))
+
+(define new-friend
+    (lambda (newlat seen)
+        (a-friend newlat (cons (quote tuna) seen))))
+
+(define latest-friend
+    (lambda (newlat seen)
+        (a-friend (cons (quote and) newlat) seen)))
+
+;; THE 10 COMMANDMENT 
+;; Build functions to collect more that one value at a time
+#| 
+(define multiinsertLR
+    (lambda (new oldL oldR lat)
+        (cond ((null? lat) '())
+              ((eq? (car lat) oldL) (cons new 
+                                          (cons oldL 
+                                                (multiinsertLR new oldL oldR (cdr lat)))))
+              ((eq? (car lat) oldR)(cons oldR 
+                                         (cons new 
+                                               (multiinsertLR new oldL oldR (cdr lat))))))))
+              (else (cons (car lat) 
+                          (multiinsertLR new oldL oldR (cdr lat)))) |#
+
+
+(define multiinsertR
+    (lambda (new old lat)
+        (cond ((null? lat) '())
+              ((eq? (car lat) old) (cons (car lat) (cons new (multiinsertR new old (cdr lat)))))
+              (else (cons (car lat) (multiinsertR new old (cdr lat)))))))
+
+
+(define multiinsertL
+    (lambda (new old lat)
+        (cond ((null? lat) '())
+              ((eq? (car lat) old) (cons new (cons old (multiinsertL new old (cdr lat)))))
+              (else (cons (car lat) (multiinsertL new old (cdr lat)))))))
+
+;;;;;;;;;;;;;;; initial col would be (lambda (lat L R) lat)
+(define multiinsertLRC
+    (lambda (new oldL oldR lat col)
+        (cond ((null? lat) (col '() 0 0))
+              ((eq? (car lat) oldL) (multiinsertLRC new oldL oldR (cdr lat) 
+                                                    (lambda (newlat L R)
+                                                        (col (cons new (cons oldL newlat)) (add1 L) R))))
+              ((eq? (car lat) oldR) (multiinsertLRC new oldL oldR (cdr lat)
+                                                    (lambda (newlat L R)
+                                                        (col (cons oldR (cons new newlat)) L (add1 R)))))
+              (else (multiinsertLRC new oldL oldR (cdr lat) (lambda (newlat L R) 
+                                                                (col (cons (car lat) newlat) L R)))))))
+
+(define evens-only*
+    (lambda (l)
+        (cond ((null? l) '())
+              ((atom? (car l))
+                  (cond ((even? (car l)) (cons (car l) (evens-only* (cdr l))))
+                        (else (evens-only* (cdr l)))))
+              (else (cons (evens-only* (car l)) (evens-only* (cdr l)))))))
+
+(define evens-only*C
+    (lambda (l col)
+        (cond ((null? l) (col '() 1 0))
+              ((atom? (car l))
+                 (cond ((even? (car l)) (evens-only*C (cdr l) 
+                                                      (lambda (newl p s)
+                                                             (col (cons (car l) newl) (* (car l) p) s))))
+                       (else (evens-only*C (cdr l) 
+                                           (lambda (newl p s)
+                                                 (col newl p (+ (car l) s)))))))
+              (else (evens-only*C (car l) 
+                                  (lambda (al ap as)
+                                     (evens-only*C (cdr l)
+                                                   (lambda (dl dp ds)
+                                                          (col (cons al dl) 
+                                                               (* ap dp)
+                                                               (+ as ds))))))))))
+
+;;(evens-only*&co '((9 1 2 8) 3 10 ((9 9) 7 6) 2) the-last-friend) 
+                                                               
+
+(define the-last-friend
+    (lambda (newl product sum)
+        (cons sum (cons product newl))))
+
+; recursion that can ignore part of the list called - unnatural recursion
+; keep-looking - it's a partial function (e.g. it can not reach the goal and stuck with infinite recursion)
+; the opposite to partial is total functions 
+
+(define eternity ;; this is the most unnatural recursion possible - it's never meet the goal
+    (lambda (x) (eternity x)))
+
+(define shift
+    (lambda (pair)
+        (build (first (first pair))
+               (build (second (first pair)) (second pair)))))
+
+(define first
+    (lambda (p) (car p)))
+
+(define second
+    (lambda (p) (car (cdr p))))
+
+(define build
+    (lambda (x y) (cons x y)))
