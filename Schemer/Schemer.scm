@@ -795,13 +795,12 @@
 (define build
     (lambda (f s)
         (cons f (cons s '()))))
-    (lambda (x) (eternity x))
 
 
 (define shift
     (lambda (pair)
         (build (first (first pair))
-               (build (second (first pair)) (second (shift '((a b) '(d e)))
+               (build (second (first pair)) (second pair)))))
 
 (define align
   (lambda (pora)
