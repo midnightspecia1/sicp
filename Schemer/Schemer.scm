@@ -505,27 +505,27 @@
               ((null? (cdr (cdr x))) #t)
               (else #f))))
 
-(define first
-    (lambda (pair)
-        (car pair)))
+;; (define first
+;;     (lambda (pair)
+;;         (car pair)))
 
 (define firsts
     (lambda (pairs)
         (cond ((null? pairs) '()) 
               (else (cons (first (car pairs)) (firsts (cdr pairs)))))))
 
-(define second
-    (lambda (pair)
-        (car (cdr pair))))
+;; (define second
+;;     (lambda (pair)
+;;         (car (cdr pair))))
         
 (define seconds
     (lambda (pairs)
         (cond ((null? pairs) '()) 
               (else (cons (second (car pairs)) (seconds (cdr pairs)))))))        
 
-(define build
-    (lambda (f s)
-        (cons f (cons s '()))))
+;; (define build
+;;     (lambda (f s)
+;;         (cons f (cons s '()))))
 
 ;; rel stands for relation
 ;; finite function is represented by the list of pairs with all diferent first elements
@@ -774,18 +774,397 @@
 ; the opposite to partial is total functions 
 
 (define eternity ;; this is the most unnatural recursion possible - it's never meet the goal
-    (lambda (x) (eternity x)))
+  (lambda (x) (eternity x)))
+
+
+(define first
+    (lambda (pair)
+        (car pair)))
+
+(define second
+    (lambda (pair)
+        (car (cdr pair))))
+
+;; This build implementation is wrong becaus it just consing tow values
+;; (define build
+;;   (lambda (x y) (cons x y)))
+
+;; (cons  'a '(b c)) => (a b c)       wrong
+;; (build 'a '(b c)) => (a (b c))     correct
+
+(define build
+    (lambda (f s)
+        (cons f (cons s '()))))
 
 (define shift
     (lambda (pair)
         (build (first (first pair))
                (build (second (first pair)) (second pair)))))
 
-(define first
-    (lambda (p) (car p)))
+(shift '((a b) '(d e)))
 
-(define second
-    (lambda (p) (car (cdr p))))
+(define align
+  (lambda (pora)
+    (cond ((atom? pora) pora)
+	  ((a-pair? (first pora)) (align (shift pora)))
+	  (else (build (first pora)
+		       (align (second pora)))))))
 
-(define build
-    (lambda (x y) (cons x y)))
+(define weight*
+  (lambda (pora)
+    (cond ((atom? pora) 1)
+	  (else (o+ (o* (weight* (first pora)) 2)
+		    (weight* (second pora)))))))
+
+(define shuffle
+  (lambda (pora)
+    (cond ((atom? pora) pora)
+	  ((a-pair? (first pora)) (shuffle (revpair pora)))
+	  (else (build (first pora)
+		       (shuffle (second pora)))))))
+
+;; Collatz conjenture funtion
+(define C
+  (lambda (n)
+    (cond ((one? n) 1)
+	  (else (cond ((even? n) (C (o/ n 2)))
+		      (else (C (add1 (o* 3 n)))))))))
+
+
+
+(define A
+  (lambda (n m)
+    (cond ((zero? n) (add1 m))
+	  ((zero? m) (A (sub1 n) 1))
+	  (else (A (sub1 n)
+		   (A n (sub1 m)))))))
+
+;; last-try - it's a total function 
+(define last-try
+  (lambda (x)
+    (and (will-stop? last-try)
+	 (eternity x))))
+
+;; if we say that (will-stop? last-try) is #f
+;; (last-try ()) return #f - but then (will-stop? last-try) = #f is wrong
+
+;; if we say that (will-stop? last-try) is #t
+;; (last-try ()) can't return anything because (eternity x) is not returning anything so
+;; (will-stop? last-try) = #t is wrong either
+
+;;(last-try ())
+;; (define will-stop?
+;;   (lambda (f)
+;;     (cond (
+
+;;length0
+;; (lambda (l)
+;;   (cond ((null? l) 0)
+;; 	(else (add1 (eternity (cdr l))))))
+
+;; ;;length1
+;; (lambda (l)
+;;   (cond ((null? l) 0)
+;; 	(else (lambda (l)
+;; 		(cond ((null? l) 0)
+;; 		      (else (add1 (eternity (cdr l))))))
+;; 	      (cdr l))))
+
+;; ;;length2
+;; (lambda (l)
+;;   (cond ((null? l) 0)
+;; 	(else (lambda (l)
+;; 		(cond ((null? 1) 0)
+;; 		      (else (lambda (l)
+;; 			      (cond ((null? l) 0)
+;; 				    (else (add1 (eternity (cdr l))))))
+;; 			    (cdr l))))
+;; 	      (cdr l))))
+
+
+;; ((lambda (length)
+;;    (lambda (l)
+;;      (cond ((null? l) 0)
+;; 	   (else (add1 (length (cdr l)))))))
+;;  eternity)
+
+;; ((lambda (f)
+;;    (lambda (l)
+;;      (cond ((null? l) 0)
+;; 	   (else (add1 (f (cdr l)))))))
+;;  ((lambda (g)
+;;     (lambda (l)
+;;       (cond ((null? l) 0)
+;; 	    (else (add1 (g (cdr l)))))))
+;;   eternity))
+
+;; ;;length0
+;; ((lambda (mk-length)
+;;    (mk-length eternity))
+;;  (lambda (length)
+;;    (lambda (l)
+;;      (cond ((null? l) 0)
+;; 	   (else (add1 (length (cdr l))))))))
+
+;; ;;length1
+;; ((lambda (mk-length)
+;;    (mk-length
+;;     (mk-length eternity)))
+;;  (lambda (length)
+;;    (lambda (l)
+;;      (cond ((null? l) 0)
+;; 	   (else (add1 (length (cdr l))))))))
+
+;; ;;length4
+;; ((lambda (mk-length)
+;;    (mk-length
+;;     (mk-length
+;;      (mk-length
+;;       (mk-length eternity)))))
+;;  (lambda (length)
+;;    (lambda (l)
+;;      (cond ((null? l) 0)
+;; 	   (else (add1 (length (cdr l))))))))
+
+
+;; ((lambda (mk-length)
+;;    (mk-length mk-length))
+;;  (lambda (mk-length)
+;;    (lambda (l)
+;;      (cond ((null? l) 0)
+;; 	   (else (add1 ((mk-length eternity)
+;; 			(cdr l))))))))
+
+(((lambda (mk-length)
+   (mk-length mk-length))
+ (lambda (mk-length)
+   (lambda (l)
+     (cond ((null? l) 0)
+	   (else (add1 ((mk-length mk-length)
+			(cdr l)))))))) '(a b c 3 s)) ;; => 5
+
+((lambda (mk-length)
+   (mk-length mk-length))
+ (lambda (mk-length)
+   (lambda (l)
+     (cond ((null? l) 0)
+	   (else (add1 ((lambda (x)
+			  ((mk-length mk-length) x))
+			(cdr l)))))))) ;; => 5
+
+((lambda (le)
+   ((lambda (mk-length)
+      (mk-length mk-length))
+    (lambda (mk-length)
+      (le (lambda (x)
+	    ((mk-length mk-length) x))))))
+ (lambda (length)
+   (lambda (l)
+     (cond ((null? l) 0)
+	   (else (add1 (length (cdr l))))))))
+
+;;This is applicative order Y combinator - recursion only through the lambda functions
+(define Y
+  (lambda (le)
+    ((lambda (f) (f f))
+     (lambda (f)
+       (le (lambda (x) ((f f) x)))))))
+
+;;Throwing the length lambda function and the argument list and it's work - amazing!
+((Y  (lambda (length)
+      (lambda (l)
+	(cond ((null? l) 0)
+	      (else (add1 (length (cdr l)))))))) '(a v c))
+
+;;CHAPTER 10
+;;entry is a pair whose first element is a set and second element has length same as the first
+(define new-entry build)
+
+(define lookup-in-entry
+  (lambda (name entry entry-f)
+    (lookup-in-entry-help name
+			  (first entry)
+			  (second entry)
+			  entry-f)))
+(define lookup-in-entry-help
+  (lambda (name names values entry-f)
+    (cond ((null? names) (entry-f name))
+	  ((eq? name (car names)) (car values))
+	  (else (lookup-in-entry-help name
+				      (cdr names)
+				      (cdr values)
+				      entry-f)))))
+
+;;table (also called enviroment) - is a list of entries
+(define extend-tables cons)
+
+
+(define lookup-in-table
+  (lambda (name table table-f)
+    (cond ((null? table) (table-f name))
+	  (else (lookup-in-entry name
+				 (car table)
+				 (lambda (name)
+				   (lookup-in-table name
+						    (cdr table)
+						    table-f)))))))
+
+;;(value '(car (quote (a b c))))
+
+(define atom-to-expression
+  (lambda (e)
+    (cond
+     ((number? e) *const)
+     ((eq? e #t) *const)
+     ((eq? e #f) *const)
+     ((eq? e (quote cons)) *const)
+     ((eq? e (quote car)) *const)
+     ((eq? e (quote cdr)) *const)
+     ((eq? e (quote null?)) *const)
+     ((eq? e (quote eq?)) *const)
+     ((eq? e (quote atom?)) *const)
+     ((eq? e (quote zero?)) *const)
+     ((eq? e (quote add1)) *const)
+     ((eq? e (quote sub1)) *const)
+     ((eq? e (quote number?)) *const)
+     (else *identifier))))
+
+(define list-to-action
+  (lambda (e)
+    (cond
+     ((atom? (car e))
+      (cond ((eq? (car e) (quote quote)) *quote)
+	    ((eq? (car e) (quote lambda)) *lambda)
+	    ((eq? (car e) (quote cond)) *cond)
+	    (else *application)))
+     (else *application))))
+
+(define value
+  (lambda (e)
+    (meaning e (quote ()))))
+
+(define meaning
+  (lambda (e table)
+    ((expression-to-action e) e table)))
+	    
+;;defining actions
+;;CONST
+(define *const
+  (lambda (e table)
+    (cond
+     ((number? e) e)
+     ((eq? e #t) #t)
+     ((eq? e #f) #f)
+     (else (build (quote primitive) e)))))
+
+;;QUOTE
+(define *quote
+  (lambda (e table) (text-of e)))
+
+(define text-of second)
+
+;;IDENTIFIER
+(define *identifier
+  (lambda (e table)
+    (lookup-in-table e table initial-table)))
+
+(define initial-table
+  (lambda (name)
+    (car (quote ()))))
+
+;;LAMBDA
+(define *lambda
+  (lambda (e table)
+    (build (quote non-primitive)
+	   (cons table (cdr e)))))
+
+(define table-of first)
+(define formals-of second)
+(define body-of third)
+
+;;COND
+(define *cond
+  (lambda (e table)
+    (evcon (cond-lines-of e) table)))
+
+(define cond-lines-of cdr)
+ 
+(define evcond
+  (lambda (lines table)
+    (cond
+     ((else? (question-of (car lines)))
+      (meaning (answer-of (car lines)) table))
+     ((meaning (question-of (car lines)) table)
+      (meaning (answer-of (car lines)) table))
+     (else (evcon (cdr lines) table)))))
+
+(define else?
+  (lambda (x)
+    (cond ((atom? x) (eq? x (quote else)))
+	  (else #f))))
+
+(define question-of first)
+(define asnwer-of second)
+
+;;APPLICATION
+(define evlis
+  (lambda (args table)
+    (cond ((null? args) (quote ()))
+	  (else (cons (meaning (car args) table)
+		      (evlis (cdr args) table))))))
+
+(define *application
+  (lambda (e table)
+    (apply
+     (meaning (function-of e) table)
+     (elvis (arguments-of e) table))))
+
+(define function-of car)
+(define arguments-of cdr)
+
+(define primitive?
+  (lambda (l)
+    (eq? (first l) (quote primitive))))
+
+(define non-primitive?
+  (lambda (l)
+    (eq? (first l) (qoute non-primitive))))
+
+(define apply
+  (lambda (fun vals)
+    (cond
+     ((primitive? fun) (apply-primitive (second fun) vals))
+     ((non-primitive? fun) (apply-closure (second fun) vals)))))
+
+;;TODO this function can we crd on the empty list or sub1 on 0 etc.
+(define apply-primitive
+  (lambda (name vals)
+    (cond
+     ((eq? name (quote cons)) (cons (first vals) (second vals)))
+     ((eq? name (quote car)) (car (first vals)))
+     ((eq? name (quote cdr)) (cdr (first vals)))
+     ((eq? name (quote null?)) (null? (first vals)))
+     ((eq? name (quote eq?)) (eq? (first vals) (second vals)))
+     ((eq? name (quote atom?)) (.atom? (first vals)))
+     ((eq? name (quote zero?)) (zero? (first vals)))
+     ((eq? name (quote add1)) (add1 (first vals)))
+     ((eq? name (quote sub1)) (sub1 (first vals)))
+     ((eq? name (quote number?)) (number? (first vals))))))
+
+(define .atom?
+  (lambda (x)
+    (cond
+     ((atom? x) #t)
+     ((null? x) #f)
+     ((eq? (car x) (quote primitive)) #t)
+     ((eq? (car x) (quote non-primitive)) #t)
+     (else #f))))
+
+(define apply-closure
+  (lambda (closure vals)
+    (meaning (body-of closure)
+	     (extend-table
+	      (new-entry
+	       (formals-of closure)
+	       vals)
+	      (table-of closure)))))
