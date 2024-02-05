@@ -774,6 +774,7 @@
 ; the opposite to partial is total functions 
 
 (define eternity ;; this is the most unnatural recursion possible - it's never meet the goal
+<<<<<<< HEAD
   (lambda (x) (eternity x)))
 
 
@@ -795,12 +796,16 @@
 (define build
     (lambda (f s)
         (cons f (cons s '()))))
+=======
+    (lambda (x) (eternity x)))
+>>>>>>> 0d1ef22 (Schemer chapter 8)
 
 (define shift
     (lambda (pair)
         (build (first (first pair))
                (build (second (first pair)) (second pair)))))
 
+<<<<<<< HEAD
 (shift '((a b) '(d e)))
 
 (define align
@@ -1168,3 +1173,13 @@
 	       (formals-of closure)
 	       vals)
 	      (table-of closure)))))
+=======
+(define first
+    (lambda (p) (car p)))
+
+(define second
+    (lambda (p) (car (cdr p))))
+
+(define build
+    (lambda (x y) (cons x y)))
+>>>>>>> 0d1ef22 (Schemer chapter 8)
