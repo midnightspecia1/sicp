@@ -1,4 +1,4 @@
-(include "core.scm")
+(include "~/Projects/sicp/core.scm")
 
 (define (sqrt-iter guess x)
    (if (good-enogh? guess x)
@@ -20,4 +20,14 @@
         (< (delta (improve guess x) guess) 0.001))
 
 (define (sqrt x)
-        (sqrt-iter 1.0 x))
+  (sqrt-iter 1.0 x))
+
+
+; since new-if is a function interpreter would evaluate all arguments of it before going
+; to the body of the procedure, and since third argument call itself we'd stuck in the 
+; infinite loop
+;; (define (sqrt-iter guess x)
+;;    (new-if (good-enogh? guess x)
+;; 	   guess
+;; 	   (sqrt-iter (improve guess x)
+;;                    x)))
