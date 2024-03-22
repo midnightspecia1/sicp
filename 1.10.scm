@@ -46,12 +46,40 @@
 (define (h n) (A 2 n)) ;2^h(n-1)
 (define (k n) (* 5 n n)) ;5n^2
 	 
+;;Counting change
+(define (count-change amount)
+  (cc amount 5))
 
+(define (cc amount kinds-of-coins)
+  (cond ((= amount 0) 1)
+	((or (< amount 0) (= kinds-of-coins 0)) 0)
+	(else (+ (cc amount
+		     (- kinds-of-coins 1))
+		 (cc (- amount
+			(first-denomination kinds-of-coins))
+		     kinds-of-coins)))))
 
+;;tail recursion variant - above should be optimized something like this
+(define (cc-tail amount kinds-of-coins acc)
+  (cond ((= amount 0) (+ acc 1))
+	((< amount 0) acc)
+	(else (if (= kinds-of-coins 0)
+		  acc
+		  (cc-tail (- amount (first-denomination kinds-of-coins))
+			   kinds-of-coins
+			   (cc-tail amount
+				    (- kinds-of-coins 1)
+				    acc))))))
 
+(define (first-denomination kind-of-coins)
+  (cond ((= kind-of-coins 1) 1)
+	((= kind-of-coins 2) 5)
+	((= kind-of-coins 3) 10)
+	((= kind-of-coins 4) 25)
+	((= kind-of-coins 5) 50)))
 
+(define (logged-cc amount kinds-of-coins)
+  (display amount) (newline)
+  (cc amount kinds-of-coins))
 
-
-
-
-
+;;(count-change 100)
